@@ -14,15 +14,18 @@ def reisen():
     {
       trip(
         from: {
-          coordinates: { latitude: 59.96050414081307, longitude: 11.040338686322317 }
           name: "Stockfleths gate 38B"
+          coordinates: { latitude: 59.9333, longitude: 10.7529 }
         }
         to: {
-          place: "NSR:StopPlace:385"
-          name: "Økern, Oslo"
+          name: "Aker Brygge, Oslo"
+          coordinates: {
+            latitude: 59.9114
+            longitude: 10.7291
+          }
         }
         numTripPatterns: 3
-        dateTime: "2026-10-15T09:33:53.756+02:00"
+        dateTime: "2026-10-16T09:38:00.999+02:00"
         walkSpeed: 1.3
         arriveBy: false
       ) {
