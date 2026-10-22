@@ -5,6 +5,99 @@ from typing import NamedTuple
 
 """welcome to TicTacToe game made by Linus"""
 
+#step1 lager tittel til tictactoe displayet og intialiserer bruken av tkinter
+class TicTacToeBoard(tk.Tk):
+    def __init__(self, game):
+        super().__init__()
+        self.title("Tic-Tac-Toe- Game")
+        self._cells = {}
+        self._game = game
+        #step6 these to lines adds a display and grid of cells
+        self._create_board_display()
+        self._create_board_grid()
+
+#Step18 this big code block is really just handeling the whole game it is using everything i have writed of classes defs and more and there is the whole instruction 
+    def play(self, event):
+        clicked_btn = event.widget
+        row, col = self._cells[clicked_btn]
+        move = move(row, col, self._game.current_player.label)
+        if self._game.is_valid_move(move):
+            self._update_button(clicked_btn)
+            self._game_process_move(move)
+            if self._game.is_tied():
+                self._update_display(msg="TIED GAME!", color="red")
+            elif self._game.has_winner():
+                self._highlight_cells()
+                msg = f'Player "{self._game.current_player.label}" WON!'
+                color = self._game.current_player.color
+                self._update_display(msg, color)
+            else:
+                self._game.toggle_player()
+                msg = f"{self._game.current_player.label}'s "
+                self._update_display(msg)
+
+#step 20 denne koden bare gjør at når du trykker i en rute så dukker faktisk x eller o opp og riktig farge
+    def _update_button(self, clicked_btn):
+        clicked_btn.config(text=self._game.current_player.label)
+        clicked_btn.config(fg=self._game_current_player.color)
+
+#step21 denne koden bare styler og endrer fargen for displayet på ruta og teskt
+    def _update_display(self, msg, color="black"):
+        self.display["text"] = msg
+        self.display["fg"] = color
+
+#step 22 denne koden endrer bakgrunnen når man får winner combo som highlight
+    def _highlight_cells(self):
+        for button, coordinates in self._cells.items():
+            if coordinates in self._game.winner_combo:
+                button.config(highlightbackground="red")
+
+#step2 selvekoden som lager display og åpner greien i termialen
+    def _create_board_display(self):
+        display_frame = tk.Frame(master=self)
+        display_frame.pack(fill=tk.X)
+        self.display = tk.Label(
+            master=display_frame,
+            text="Ready?",
+            font=font.Font(size=28, weight="bold"),
+        )
+        self.display.pack()
+
+#step3 this just makes so code is visible and makes a frame to hold the grid with cells in main window
+    def _create_board_grid(self):
+        grid_frame = tk.Frame(master=self)
+        grid_frame.pack()
+        #step4 makes the button and row a 9 by 9 aquare to look like a tictactoe board
+        for row in range(self._game.board_size):
+            self.rowconfigure(row, weight=1, minsize=50)
+            self.columnconfigure(row, weight=1, minsize=75)
+            for col in range(self._game.board_size):
+                button = tk.Button(
+                    master=grid_frame,
+                    text="",
+                    font=font.Font(size=36, weight="bold"),
+                    fg="black",
+                    width=3,
+                    height=2,
+                    highlightbackground="lightblue",
+                #step5 makes it possible to clik and use the button class and places the button and fills the grid
+                )
+                self._cells[button] = (row, col)
+                #step19 this 1 sentence code does so when a player clicks a given button the method will run a process on the move and update the game
+                button.bind("<ButtonPress-1>", self.play)
+                # step 19 this is the 1 sentence over
+                button.grid(
+                        row=row,
+                        column=col,
+                        padx=5,
+                        pady=5,
+                        sticky="nsew"
+                    )
+
+
+
+
+
 #step8 player and move class which makes a x and o and where it cordinates when i click with move
 class Player(NamedTuple):
     label: str
@@ -34,6 +127,22 @@ class TicTacToeGame:
         self._winning_combos = []
         self._setup_board()
 
+#step14 is a code is to check if anyone have won when there is no more places to click
+    def process_move(self, move):
+        row, col = move.row, move.col
+        self._current_moves[row][col] = move
+        for combo in self._winning_combos:
+            results = set(
+                self._current_moves[n][m].label
+                for n, m in combo 
+            )
+            is_win = (len(results) == 1) and ("" not in results)
+            if is_win:
+                self._has_winner = True
+                self.winner_combo = combo
+                break
+
+
     #step11 we use class tictactoegame def like self winner combos and more to figure out the winner combinations and range of winning combinations
     def _setup_board(self):
         self._current_moves = [
@@ -41,6 +150,10 @@ class TicTacToeGame:
             for row in range(self.board_size)
         ]    
         self._winning_combos = self._get_winning_combos()
+
+#step17 this code under makes it possible for the next person to click and contiune the game
+    def toggle_player(self):
+        self.current_player = next(self._players)
 
 #step12 we calculate the winning combos
     def _get_winning_combos(self):
@@ -59,59 +172,24 @@ class TicTacToeGame:
             move_was_not_played = self._current_moves[row][col].label == ""
             no_winner = not self._has_winner
             return no_winner and move_was_not_played
-        
 
-#step1 lager tittel til tictactoe displayet og intialiserer bruken av tkinter
-class TicTacToeBoard(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Tic-Tac-Toe- Game")
-        self._cells = {}
-        #step6 these to lines adds a display and grid of cells
-        self._create_board_display()
-        self._create_board_grid()
+#step15 just checks if there is a winner og not maybe draw?
+    def has_winner(self):
+        return self._has_winner
 
-#step2 selvekoden som lager display og åpner greien i termialen
-    def _create_board_display(self):
-        display_frame = tk.Frame(master=self)
-        display_frame.pack(fill=tk.X)
-        self.display = tk.Label(
-            master=display_frame,
-            text="Ready?",
-            font=font.Font(size=28, weight="bold"),
+#step16 this code under checks that there is a draw when there is no winner and everything has been clicked
+    def is_tied(self):
+        no_winner = not self._has_winner
+        played_moves = (
+            move.label for row in self._current_moves for move in row
         )
-        self.display.pack()
+        return no_winner and all(played_moves)
 
-#step3 this just makes so code is visible and makes a frame to hold the grid with cells in main window
-    def _create_board_grid(self):
-        grid_frame = tk.Frame(master=self)
-        grid_frame.pack()
-        #step4 makes the button and row a 9 by 9 aquare to look like a tictactoe board
-        for row in range(3):
-            self.rowconfigure(row, weight=1, minsize=50)
-            self.columnconfigure(row, weight=1, minsize=75)
-            for col in range(3):
-                button = tk.Button(
-                    master=grid_frame,
-                    text="",
-                    font=font.Font(size=36, weight="bold"),
-                    fg="black",
-                    width=3,
-                    height=2,
-                    highlightbackground="lightblue",
-                #step5 makes it possible to clik and use the button class and places the button and fills the grid
-                )
-                self._cells[button] = (row, col)
-                button.grid(
-                        row=row,
-                        column=col,
-                        padx=5,
-                        pady=5,
-                        sticky="nsew"
-                    )
+
 #step7 this under here is needed to make the code run from the terminal
 def main():
     """Create the games board and run its main loop"""
+    game = TicTacToeGame()
     board = TicTacToeGame() 
     board = TicTacToeBoard(game)
     board.mainloop()
